@@ -10,7 +10,6 @@ const verifInput_1 = require("../utils/functions/verifInput");
 const findUserByMail_1 = require("../utils/functions/findUserByMail");
 const findAddress_1 = require("../utils/functions/findAddress");
 const createAddress_1 = require("../utils/functions/createAddress");
-const sendView_1 = require("../utils/functions/sendView");
 const cleanValue_1 = require("../utils/functions/cleanValue");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
@@ -48,7 +47,7 @@ const signin = (req, res) => {
     try {
         if (req.body.email && req.body.password) {
             if (isConnected) {
-                (0, sendView_1.sendView)(res, 200, '/');
+                res.status(401).redirect('/');
             }
             const inputs = [
                 { type: 'email', name: 'email', message: 'Email obligatoire' },
@@ -74,7 +73,7 @@ const signin = (req, res) => {
                             res.status(200).json({ url: '/', message: { type: 'success', text: successMessage } });
                         }
                         else {
-                            (0, sendView_1.sendView)(res, 401, "signin", { isConnected: isConnected, roleConnected: roleConnected, message: { type: "error", text: 'Identifiants incorrect' } });
+                            res.status(401).json({ url: '/signin', message: { type: "error", text: 'Identifiants incorrect' } });
                         }
                     })
                         .catch(error => { throw new Error(`${error}`); });
@@ -98,7 +97,7 @@ const signin = (req, res) => {
     }
     catch (error) {
         console.log(`Erreur connexion : ${error}`);
-        (0, sendView_1.sendView)(res, 500, "");
+        res.status(500).render((0, path_1.join)(__dirname, "../views/errors/error-500.ejs"), { isConnected: isConnected, roleConnected: roleConnected, message: { type: 'error', text: 'Signin' } });
     }
 };
 exports.signin = signin;
@@ -109,7 +108,7 @@ const signup = (req, res) => {
     try {
         if (req.body.email || req.body.lastname || req.body.firstname || req.body.password || req.body.confirm || req.body.street || req.body.zipcode || req.body.city) {
             if (isConnected) {
-                (0, sendView_1.sendView)(res, 200, '/');
+                res.status(401).redirect('/');
             }
             if (req.body.email && req.body.password && req.body.confirm) {
                 if (req.body.password === req.body.confirm) {
@@ -130,7 +129,7 @@ const signup = (req, res) => {
                     (0, findUserByMail_1.findUserByMail)(req)
                         .then(user => {
                         if (user) {
-                            (0, sendView_1.sendView)(res, 401, 'signup', { isConnected: isConnected, roleConnected: roleConnected, message: { type: 'error', text: "Problème lors de l'inscription" } });
+                            res.status(401).json({ url: 'signup', message: { type: 'error', text: "Problème lors de l'inscription" } });
                         }
                         else {
                             if (street || zipcode || city) {
@@ -153,7 +152,7 @@ const signup = (req, res) => {
                                     });
                                 }
                                 else {
-                                    (0, sendView_1.sendView)(res, 401, 'signup', { isConnected: isConnected, roleConnected: roleConnected, message: { type: 'error', text: "Veuillez compléter tous les champs de votre adresse postal" } });
+                                    res.status(401).json({ url: '/signup', message: { type: 'error', text: "Veuillez compléter tous les champs de votre adresse postal" } });
                                 }
                             }
                             else {
@@ -167,29 +166,29 @@ const signup = (req, res) => {
                 }
                 else {
                     if (isConnected) {
-                        (0, sendView_1.sendView)(res, 200, "/");
+                        res.status(400).redirect('/');
                     }
                     else {
-                        (0, sendView_1.sendView)(res, 200, 'signup', { isConnected: isConnected, roleConnected: roleConnected, message: { type: "error", text: "Le mot de passe et sa confirmation ne sont pas identique" } });
+                        res.status(401).json({ url: '/signup', message: { type: "error", text: "Le mot de passe et sa confirmation ne sont pas identique" } });
                     }
                 }
             }
             else {
-                (0, sendView_1.sendView)(res, 200, 'signup', { isConnected: isConnected, roleConnected: roleConnected, message: { type: "error", text: "Veuillez remplir les champs obligatoires" } });
+                res.status(401).json({ url: '/signup', message: { type: "error", text: "Veuillez remplir les champs obligatoires" } });
             }
         }
         else {
             if (isConnected) {
-                (0, sendView_1.sendView)(res, 200, '/');
+                res.status(400).redirect('/');
             }
             else {
-                (0, sendView_1.sendView)(res, 200, 'signup', { isConnected: isConnected, roleConnected: roleConnected });
+                res.status(200).render((0, path_1.join)(__dirname, "../views/sign/signup.ejs"), { isConnected: isConnected, roleConnected: roleConnected });
             }
         }
     }
     catch (error) {
         console.log(error);
-        (0, sendView_1.sendView)(res, 401, 'error', { isConnected: isConnected, roleConnected: roleConnected, message: { type: 'error', text: 'Inscription' } });
+        res.status(500).render((0, path_1.join)(__dirname, "../views/errors/error-500.ejs"), { isConnected: isConnected, roleConnected: roleConnected, message: { type: 'error', text: 'Inscription' } });
     }
 };
 exports.signup = signup;
@@ -207,7 +206,6 @@ const logout = (req, res) => {
     catch (error) {
         console.log(`Erreur Déconnexion : ${error}`);
         res.status(500).render((0, path_1.join)(__dirname, "../views/errors/error-500.ejs"), { isConnected: isConnected, roleConnected: roleConnected, message: { type: 'error', text: 'Disconnect' } });
-        //sendView(res, 500, "error", {isConnected: isConnected, roleConnected: roleConnected, message: {type: 'error', text: 'Disconnect'}});
     }
 };
 exports.logout = logout;

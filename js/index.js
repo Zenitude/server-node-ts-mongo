@@ -36,32 +36,25 @@ const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const express_session_1 = __importDefault(require("express-session"));
 const routes_1 = require("./routes/routes");
 const mongodb_1 = require("./utils/database/mongodb");
+const helmet_1 = __importDefault(require("helmet"));
 /* Config Server */
 const app = (0, express_1.default)();
 (0, dotenv_1.config)();
 /* Connect Database */
 (0, mongodb_1.connectMongo)();
 /* Middlewares */
-//app.use(urlencoded({extended: true}))
 app.use((0, express_1.json)());
-// app.use(helmet({
-//     contentSecurityPolicy: {
-//         directives: {
-//             formAction: ["'self'", "http://localhost"],
-//             styleSrc : ["'self'"],
-//             scriptSrc: ["'self'", "http://localhost"]
-// 		}
-//     },
-//     strictTransportSecurity: {
-//         maxAge: 0,
-//         includeSubDomains: false,
-//         preload: false
-//        },
-//     crossOriginOpenerPolicy: { policy: "unsafe-none" },
-//     crossOriginResourcePolicy: false,
-//     originAgentCluster: false,
-//     xContentTypeOptions: true
-// }));
+app.use((0, helmet_1.default)({
+    contentSecurityPolicy: {
+        directives: {
+            styleSrc: ["'self'"],
+        }
+    },
+    crossOriginOpenerPolicy: { policy: "unsafe-none" },
+    crossOriginResourcePolicy: false,
+    originAgentCluster: false,
+    xContentTypeOptions: true
+}));
 app.use((0, cookie_parser_1.default)());
 app.use((0, express_session_1.default)({
     secret: process.env.SECRET_KEY_SESSION,

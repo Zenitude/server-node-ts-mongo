@@ -4,11 +4,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.remove = exports.details = exports.list = exports.contact = void 0;
-const sendView_1 = require("../utils/functions/sendView");
+const path_1 = require("path");
 const Message_1 = __importDefault(require("../models/Message"));
 const cleanValue_1 = require("../utils/functions/cleanValue");
 const verifInput_1 = require("../utils/functions/verifInput");
-const path_1 = require("path");
 const findMessages = async () => {
     return await Message_1.default.find();
 };
@@ -37,17 +36,17 @@ const contact = async (req, res, next) => {
             newMessage.save()
                 .then((result) => {
                 console.log(`Message sauvegardé : ${result}`);
-                (0, sendView_1.sendView)(res, 200, 'contact', { isConnected: isConnected, roleConnected: roleConnected, successSend: "Message envoyé avec succès" });
+                res.status(200).json({ url: '/contact', message: { type: 'success', text: 'Message envoyé avec succès' } });
             })
                 .catch((error) => { throw new Error(`Error Save Message : ${error}`); });
         }
         else {
-            (0, sendView_1.sendView)(res, 200, 'contact', { isConnected: isConnected, roleConnected: roleConnected, successSend: "" });
+            res.status(200).render((0, path_1.join)(__dirname, "../views/contact.ejs"), { isConnected: isConnected, roleConnected: roleConnected });
         }
     }
     catch (error) {
         console.log(`${error}`);
-        (0, sendView_1.sendView)(res, 401, 'contact', { isConnected: isConnected, roleConnected: roleConnected, successSend: "", error: "Erreur lors de l'envoie du message" });
+        res.status(200).render((0, path_1.join)(__dirname, "../views/contact.ejs"), { isConnected: isConnected, roleConnected: roleConnected, message: { type: 'error', text: "Erreur lors de l'envoie du message" } });
     }
 };
 exports.contact = contact;
@@ -57,19 +56,19 @@ const list = async (req, res) => {
     const roleConnected = res.locals.roleUser ?? false;
     try {
         if (roleConnected !== 1) {
-            (0, sendView_1.sendView)(res, 401, "error", { isConnected: isConnected, roleConnected: roleConnected });
+            res.status(401).render((0, path_1.join)(__dirname, "../views/errors/error-401.ejs"), { isConnected: isConnected, roleConnected: roleConnected });
         }
         else {
             await findMessages()
                 .then(messages => {
-                (0, sendView_1.sendView)(res, 200, 'list-message', { isConnected: isConnected, roleConnected: roleConnected, messages: messages });
+                res.status(200).render((0, path_1.join)(__dirname, "../views/management/messages/list-message.ejs"), { isConnected: isConnected, roleConnected: roleConnected, messages: messages });
             })
                 .catch(error => { throw new Error(`Error findUsers List Users : ${error}`); });
         }
     }
     catch (error) {
         console.log(`Erreur List Messages : ${error}`);
-        (0, sendView_1.sendView)(res, 401, 'error', { isConnected: isConnected, roleConnected: roleConnected, error: 'List Messages' });
+        res.status(401).render((0, path_1.join)(__dirname, "../views/errors/error-401.ejs"), { isConnected: isConnected, roleConnected: roleConnected, message: { type: 'error', text: 'List Messages' } });
     }
 };
 exports.list = list;
@@ -80,15 +79,15 @@ const details = (req, res, next) => {
     const detailsMessage = res.locals.detailsMessage ?? false;
     try {
         if (!isConnected || roleConnected !== 1 || !detailsMessage) {
-            (0, sendView_1.sendView)(res, 401, "error", { isConnected: isConnected, roleConnected: roleConnected });
+            res.status(401).render((0, path_1.join)(__dirname, "../views/errors/error-401.ejs"), { isConnected: isConnected, roleConnected: roleConnected });
         }
         else {
-            (0, sendView_1.sendView)(res, 200, 'details-message', { message: detailsMessage, isConnected: isConnected, roleConnected: roleConnected });
+            res.status(200).render((0, path_1.join)(__dirname, "../views/management/messages/details-message.ejs"), { message: detailsMessage, isConnected: isConnected, roleConnected: roleConnected });
         }
     }
     catch (error) {
         console.log(`Erreur details Message : ${error}`);
-        (0, sendView_1.sendView)(res, 500, 'error', 'Details Message');
+        res.status(500).render((0, path_1.join)(__dirname, "../views/errors/error-500.ejs"), { isConnected: isConnected, roleConnected: roleConnected, message: { type: 'error', text: 'Details Message' } });
     }
 };
 exports.details = details;

@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from "express";
-import { sendView } from "../../functions/sendView";
 import User from "../../../models/User";
 import { join } from "path";
 import { CustomType } from "../../types/types";
@@ -32,7 +31,6 @@ export const getRole = (req: Request, res: Response, next: NextFunction) => {
         }
     } catch(error) {
         console.log(`${error}`);
-        res.status(401).render(join(__dirname, "../../views/errors/error-401.ejs"), {isConnected: isConnected, roleConnected: roleConnected});
-        //sendView(res, 401, 'error', { isConnected: isConnected, roleConnected: roleConnected, message: {type: 'error', text: 'Erreur Role'}})
+        res.status(401).render(join(__dirname, "../../views/errors/error-401.ejs"), {isConnected: isConnected, roleConnected: roleConnected, message: {type: 'error', text: 'Erreur Role'}});
     }
 }

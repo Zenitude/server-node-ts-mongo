@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import jwt, { Secret, JwtPayload } from "jsonwebtoken";
 import { join } from "path";
-import { sendView } from "../../functions/sendView";
 import { CustomType } from "../../types/types";
 
 export const getToken = (req: Request, res: Response, next: NextFunction) => {
@@ -27,7 +26,6 @@ export const getToken = (req: Request, res: Response, next: NextFunction) => {
     }
     catch(error) {
         console.log(`${error}`);
-        res.status(401).render(join(__dirname, "../../views/errors/error-401.ejs"), {isConnected: isConnected, roleConnected: roleConnected})
-        //sendView(res, 401, 'error', {isConnected: isConnected, roleConnected: roleConnected});
+        res.status(401).render(join(__dirname, "../../views/errors/error-401.ejs"), {isConnected: isConnected, roleConnected: roleConnected, message: {type: 'error', text: 'Token'}})
     }
 }

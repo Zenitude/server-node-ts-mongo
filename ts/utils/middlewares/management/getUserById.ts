@@ -3,7 +3,6 @@ import User from "../../../models/User";
 import { cleanValue } from "../../functions/cleanValue";
 import { CustomType } from "../../types/types";
 import { join } from "path";
-import { sendView } from "../../functions/sendView";
 
 export const getUserById = async (req: Request, res: Response, next: NextFunction) => {
     const session = req.session as CustomType;
@@ -20,6 +19,6 @@ export const getUserById = async (req: Request, res: Response, next: NextFunctio
         }
     } catch(error) {
         console.log(`Error GetUserById : ${error}`);
-        sendView(res, 404, "error", { isConnected: isConnected, roleConnected: roleConnected, message: {type: "error", text:"Get User"}});
+        res.status(404).render(join(__dirname, "../../views/errors/error-404.ejs"), { isConnected: isConnected, roleConnected: roleConnected, message: {type: "error", text:"Get User"}})
     }
 }

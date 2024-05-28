@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getUserById = void 0;
 const User_1 = __importDefault(require("../../../models/User"));
 const cleanValue_1 = require("../../functions/cleanValue");
-const sendView_1 = require("../../functions/sendView");
+const path_1 = require("path");
 const getUserById = async (req, res, next) => {
     const session = req.session;
     const isConnected = session.isConnected ?? false;
@@ -24,7 +24,7 @@ const getUserById = async (req, res, next) => {
     }
     catch (error) {
         console.log(`Error GetUserById : ${error}`);
-        (0, sendView_1.sendView)(res, 404, "error", { isConnected: isConnected, roleConnected: roleConnected, message: { type: "error", text: "Get User" } });
+        res.status(404).render((0, path_1.join)(__dirname, "../../views/errors/error-404.ejs"), { isConnected: isConnected, roleConnected: roleConnected, message: { type: "error", text: "Get User" } });
     }
 };
 exports.getUserById = getUserById;

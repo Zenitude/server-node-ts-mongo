@@ -2,9 +2,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.verifInputs = void 0;
 const express_validator_1 = require("express-validator");
-const sendView_1 = require("./sendView");
-// verifInputs va verifier la conformité des données et les sécuriser 
+const path_1 = require("path");
 const verifInputs = (req, res, inputs) => {
+    const session = req.session;
+    const isConnected = session.isConnected ?? false;
+    const roleConnected = res.locals.roleUser ?? false;
     inputs.forEach(input => {
         switch (input.type) {
             case 'string':
@@ -21,7 +23,7 @@ const verifInputs = (req, res, inputs) => {
     const errors = (0, express_validator_1.validationResult)(req);
     if (!errors.isEmpty()) {
         console.log(errors.array());
-        (0, sendView_1.sendView)(res, 421, 'error', 'Validation Formulaire');
+        res.status(421).render((0, path_1.join)(__dirname, "../../views/errors/error-421.ejs"), { isConnected: isConnected, roleConnected: roleConnected, message: { type: 'error', text: 'Validation Formulaire' } });
     }
 };
 exports.verifInputs = verifInputs;

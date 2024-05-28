@@ -1,10 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
-import { sendView } from "../utils/functions/sendView";
+import { join } from "path";
 import Message from "../models/Message";
 import { cleanValue } from '../utils/functions/cleanValue';
 import { verifInputs } from '../utils/functions/verifInput';
 import { CustomType } from '../utils/types/types';
-import { join } from "path";
 
 const findMessages = async () => {
     return await Message.find();
@@ -40,15 +39,15 @@ export const contact = async (req: Request, res: Response, next: NextFunction) =
             newMessage.save()
             .then((result: any) => {
                 console.log(`Message sauvegardé : ${result}`);
-                sendView(res, 200, 'contact', {isConnected: isConnected, roleConnected : roleConnected, successSend: "Message envoyé avec succès"})
+                res.status(200).json({url: '/contact', message: {type: 'success', text: 'Message envoyé avec succès'}})
             })
             .catch((error: any) => { throw new Error(`Error Save Message : ${error}`)}); 
         } else {
-            sendView(res, 200, 'contact', { isConnected: isConnected, roleConnected : roleConnected, successSend: ""});
+            res.status(200).render(join(__dirname, "../views/contact.ejs"), { isConnected: isConnected, roleConnected : roleConnected})
         }
     } catch(error) {
         console.log(`${error}`);
-        sendView(res, 401, 'contact', {isConnected: isConnected, roleConnected : roleConnected, successSend: "", error: "Erreur lors de l'envoie du message" })
+        res.status(200).render(join(__dirname, "../views/contact.ejs"), { isConnected: isConnected, roleConnected : roleConnected, message: {type: 'error', text:"Erreur lors de l'envoie du message"}})
     }
 }
 
@@ -59,17 +58,17 @@ export const list = async (req: Request, res: Response) => {
 
     try {
         if(roleConnected !== 1) {
-            sendView(res, 401, "error", {isConnected: isConnected, roleConnected: roleConnected});
+            res.status(401).render(join(__dirname, "../views/errors/error-401.ejs"), {isConnected: isConnected, roleConnected: roleConnected})
         } else {
             await findMessages()
             .then(messages => {
-                sendView(res, 200, 'list-message', {isConnected: isConnected, roleConnected: roleConnected, messages: messages});
+                res.status(200).render(join(__dirname, "../views/management/messages/list-message.ejs"), {isConnected: isConnected, roleConnected: roleConnected, messages: messages})
             })
             .catch(error => { throw new Error(`Error findUsers List Users : ${error}`)});
         }
     } catch(error) {
         console.log(`Erreur List Messages : ${error}`);
-        sendView(res, 401, 'error', {isConnected: isConnected, roleConnected: roleConnected, error: 'List Messages'});
+        res.status(401).render(join(__dirname, "../views/errors/error-401.ejs"), {isConnected: isConnected, roleConnected: roleConnected, message: {type: 'error', text: 'List Messages'}})
     }
 }
 
@@ -81,13 +80,13 @@ export const details = (req: Request, res: Response, next: NextFunction) => {
 
     try {
         if(!isConnected || roleConnected !== 1 || !detailsMessage) {
-            sendView(res, 401, "error", {isConnected: isConnected, roleConnected: roleConnected});
+            res.status(401).render(join(__dirname, "../views/errors/error-401.ejs"), {isConnected: isConnected, roleConnected: roleConnected})
         } else {
-            sendView(res, 200, 'details-message', {message: detailsMessage, isConnected: isConnected, roleConnected: roleConnected});
+            res.status(200).render(join(__dirname, "../views/management/messages/details-message.ejs"), {message: detailsMessage, isConnected: isConnected, roleConnected: roleConnected})
         }
     } catch(error) {
         console.log(`Erreur details Message : ${error}`);
-        sendView(res, 500, 'error', 'Details Message');
+        res.status(500).render(join(__dirname, "../views/errors/error-500.ejs"), {isConnected: isConnected, roleConnected: roleConnected, message:{type:'error', text:'Details Message'}})
     }
 }
 

@@ -8,7 +8,6 @@ import { verifInputs } from "../utils/functions/verifInput";
 import { findUserByMail } from "../utils/functions/findUserByMail";
 import { createAddress } from "../utils/functions/createAddress";
 import { findAddress } from "../utils/functions/findAddress";
-import { sendView } from "../utils/functions/sendView";
 import { cleanValue } from "../utils/functions/cleanValue";
 import { UserModel, AddressUserModel, CustomType } from "../utils/types/types";
 
@@ -96,17 +95,17 @@ export const list = async (req: Request, res: Response) => {
 
     try {
         if(roleConnected !== 1) {
-            sendView(res, 401, "error", {isConnected: isConnected, roleConnected: roleConnected});
+            res.status(401).render(join(__dirname, "../views/errors/error-401.ejs"), {isConnected: isConnected, roleConnected: roleConnected})
         } else {
             await findUsers()
             .then(users => {
-                sendView(res, 200, 'list-user', {isConnected: isConnected, roleConnected: roleConnected, users: users});
+                res.status(200).render(join(__dirname, "../views/management/users/list-user.ejs"), {isConnected: isConnected, roleConnected: roleConnected, users: users})
             })
             .catch(error => { throw new Error(`Error findUsers List Users : ${error}`)});
         }
     } catch(error) {
         console.log(`Erreur List Users : ${error}`);
-        sendView(res, 401, 'error', {isConnected: isConnected, roleConnected: roleConnected, message: {type: 'error', text:'List Users'}});
+        res.status(500).render(join(__dirname, "../views/errors/error-500.ejs"), {isConnected: isConnected, roleConnected: roleConnected, message: {type: 'error', text:'List Users'}})
     }
 }
 
@@ -117,14 +116,14 @@ export const details = (req: Request, res: Response) => {
 
     try {
         if(roleConnected !== 1) {
-            sendView(res, 401, "error", {isConnected: isConnected, roleConnected: roleConnected});
+            res.status(401).render(join(__dirname, "../views/errors/error-401.ejs"), {isConnected: isConnected, roleConnected: roleConnected})
         } else {
             const user = res.locals.detailsUser ?? false;
-            sendView(res, 200, 'details-user', {user: user, isConnected: isConnected, roleConnected: roleConnected});
+            res.status(200).render(join(__dirname, "../views/management/users/details-user.ejs"), {user: user, isConnected: isConnected, roleConnected: roleConnected})
         }
     } catch(error) {
         console.log(`Erreur details User : ${error}`);
-        sendView(res, 500, 'error', {isConnected: isConnected, roleConnected: roleConnected, message: {type: "error", text:"Détails User"}});
+        res.status(500).render(join(__dirname, "../views/errors/error-500.ejs"), {isConnected: isConnected, roleConnected: roleConnected, message: {type: 'error', text:'Détails User'}})
     }
 }
 
@@ -135,7 +134,7 @@ export const create = (req: Request, res: Response) => {
 
     try {
         if(req.body.email || req.body.lastname || req.body.firstname || req.body.password || req.body.confirm || req.body.street || req.body.zipcode || req.body.city) {
-            if(!isConnected || roleConnected !== 1) { sendView(res, 200, '/'); }
+            if(!isConnected || roleConnected !== 1) { res.status(401).redirect('/') }
             if(req.body.email && req.body.password && req.body.confirm) {
                 if(req.body.password === req.body.confirm) {
                     const inputs = [
@@ -197,14 +196,14 @@ export const create = (req: Request, res: Response) => {
             }
         } else {
             if(!isConnected || roleConnected !== 1) {
-                sendView(res, 200, '/');
+                res.status(401).redirect('/')
             } else {
-                sendView(res, 200, 'create-user', {isConnected: isConnected, roleConnected: roleConnected});
+                res.status(200).render(join(__dirname, "../views/management/users/create-user.ejs"), {isConnected: isConnected, roleConnected: roleConnected})
             }
         } 
     } catch(error) {
         console.log(`${error}`);
-        sendView(res, 500, 'create-user', {isConnected: isConnected, roleConnected: roleConnected, message: {type: "error", text: "Erreur lors de la création d'un utilisateur"} });
+        res.status(500).render(join(__dirname, "../views/errors/error-500.ejs"), {isConnected: isConnected, roleConnected: roleConnected, message: {type: 'error', text:"Create User"}})
     }
 }
 
@@ -217,7 +216,7 @@ export const update = (req: Request, res: Response) => {
     try {
         if(req.body.email || req.body.lastname || req.body.firstname || req.body.street || req.body.zipcode || req.body.city) {
             console.log('id update : ', req.params.id);
-            if(!isConnected || roleConnected !== 1) { sendView(res, 200, '/'); }
+            if(!isConnected || roleConnected !== 1) { res.status(401).redirect('/'); }
 
             const inputs = [
                 {type: 'string', name: 'lastname', message: ''},
@@ -241,40 +240,10 @@ export const update = (req: Request, res: Response) => {
                     .then(address => {
                         if(address) {
                             verifEmail(req, res, detailsUser, address);
-                            // if(req.body.email && detailsUser.email !== cleanValue(req.body.email)) {
-                            //     User.findOne({email: cleanValue(req.body.email)})
-                            //     .then(emailExist => {
-                            //         if(emailExist) {
-                            //             const message = "L'email saisie existe déjà dans la base de données"
-                            //             res.status(200).json({url: `/users/${detailsUser._id}/update`, message: {type: 'error', text: message}})
-                            //         }
-                            //         else {
-                            //             refreshUser(req, res, detailsUser, address._id);
-                            //         }
-                            //     })
-                            //     .catch(error => { throw new Error(`Erreur findUserByMail update user : ${error}`)}) 
-                            // } else {
-                            //     refreshUser(req, res, detailsUser, address._id);
-                            // }
                         } else {
                             createAddress(req)
                             .then(result => {
                                 verifEmail(req, res, detailsUser, result);
-                                // if(req.body.email && detailsUser.email !== cleanValue(req.body.email)) {   
-                                //     User.findOne({email: cleanValue(req.body.email)})
-                                //     .then(emailExist => {
-                                //         if(emailExist) {
-                                //             const message = "L'email saisie existe déjà dans la base de données";
-                                //             res.status(200).json({url: `/users/${detailsUser._id}/update`, message: {type: 'error', text: message}});
-                                //         }
-                                //         else {
-                                //             refreshUser(req, res, detailsUser, result._id);
-                                //         }
-                                //     })
-                                //     .catch(error => { throw new Error(`Erreur findUserByMail update user : ${error}`)})
-                                // } else {
-                                //     refreshUser(req, res, detailsUser, result._id);
-                                // }
                             })
                             .catch(error => { throw new Error(`Error createAddress Update User : ${error}`)});
                         }
@@ -286,29 +255,14 @@ export const update = (req: Request, res: Response) => {
                 }
             } else {
                 verifEmail(req, res, detailsUser);
-                // if(req.body.email && detailsUser.email !== cleanValue(req.body.email)) {
-                //     User.findOne({email: cleanValue(req.body.email)})
-                //     .then(emailExist => {
-                //         if(emailExist) {
-                //             const message = "L'email saisie existe déjà dans la base de données";
-                //             res.status(200).json({url: `/users/${detailsUser._id}/update`, message: {type: 'error', text: message}});
-                //         }
-                //         else {
-                //             refreshUser(req, res, detailsUser);
-                //         }
-                //     })
-                //     .catch(error => { throw new Error(`Erreur findUserByMail update user : ${error}`)}) 
-                // } else {
-                //     refreshUser(req, res, detailsUser);
-                // }
             }
             
         } else {
-            sendView(res, 200, 'update-user', { isConnected: isConnected, roleConnected: roleConnected, user: detailsUser});
+            res.status(200).render(join(__dirname, "../views/management/update-user.ejs"), { isConnected: isConnected, roleConnected: roleConnected, user: detailsUser})
         }
     } catch(error) {
         console.log(`${error}`);
-        sendView(res, 401, 'error', {isConnected: isConnected, roleConnected: roleConnected, message: {type: "error", text: 'Update User'}});
+        res.status(500).render(join(__dirname, "../views/errors/error-500.ejs"), {isConnected: isConnected, roleConnected: roleConnected, message: {type: 'error', text:"Update User"}})
     }
 }
 
@@ -337,6 +291,6 @@ export const remove = (req: Request, res: Response) => {
         }
     } catch(error) {
         console.log(`${error}`);
-        res.status(200).render(join(__dirname, `../views/management/users/delete-user.ejs`), {isConnected: isConnected, roleConnected: roleConnected, user: detailsUser, message:{type: 'error', text:'Erreur lors de la tentative de suppression'}})
+        res.status(200).render(join(__dirname, `../views/management/users/delete-user.ejs`), {isConnected: isConnected, roleConnected: roleConnected, user: detailsUser, message:{type: 'error', text:'Delete User'}})
     }
 }

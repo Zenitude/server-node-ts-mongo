@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { sendView } from "../utils/functions/sendView";
+import { join } from "path";
 import { CustomType } from "../utils/types/types";
 
 export const dashboard = (req: Request, res: Response, next: NextFunction) => {
@@ -8,8 +8,8 @@ export const dashboard = (req: Request, res: Response, next: NextFunction) => {
     const roleConnected = res.locals.roleUser ?? false;
 
     if(roleConnected !== 1) {
-        sendView(res, 200, '/');
+        res.status(200).redirect("/");
     } else {
-        sendView(res, 200, "admin", { isConnected: isConnected, roleConnected: roleConnected});
+        res.status(200).render(join(__dirname, "../views/management/dashboard.ejs"), { isConnected: isConnected, roleConnected: roleConnected})
     }
 }

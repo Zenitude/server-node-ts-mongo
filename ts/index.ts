@@ -18,28 +18,18 @@ config();
 connectMongo();
 
 /* Middlewares */
-
-
-//app.use(urlencoded({extended: true}))
 app.use(json())
-// app.use(helmet({
-//     contentSecurityPolicy: {
-//         directives: {
-//             formAction: ["'self'", "http://localhost"],
-//             styleSrc : ["'self'"],
-//             scriptSrc: ["'self'", "http://localhost"]
-// 		}
-//     },
-//     strictTransportSecurity: {
-//         maxAge: 0,
-//         includeSubDomains: false,
-//         preload: false
-//        },
-//     crossOriginOpenerPolicy: { policy: "unsafe-none" },
-//     crossOriginResourcePolicy: false,
-//     originAgentCluster: false,
-//     xContentTypeOptions: true
-// }));
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            styleSrc : ["'self'"],
+		}
+    },
+    crossOriginOpenerPolicy: { policy: "unsafe-none" },
+    crossOriginResourcePolicy: false,
+    originAgentCluster: false,
+    xContentTypeOptions: true
+}));
 app.use(cookieParser());
 app.use(session({
     secret: process.env.SECRET_KEY_SESSION as string,
